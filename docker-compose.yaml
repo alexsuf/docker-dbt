@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  postgres:
+    image: alexsuf/postgres
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: dbt
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: dbt
+    ports:
+      - 1111:5432
+    volumes:
+      - postgres_db:/var/lib/postgresql/data
+      - ./FILES:/mnt/files
+
+  dbt:
+    image: alexsuf/dbt
+    container_name: dbt
+    depends_on:
+      - postgres
+    environment:
+      - DBT_HOST=host.docker.internal
+      - DBT_PORT=1111
+      - DBT_USER=dbt
+      - DBT_PASSWORD=secret
+      - DBT_PROFILES_DIR=/dbt/profiles
+      - DBT_PROJECT_DIR=/dbt/project
+      - TZ=Europe/Moscow
+    volumes:
+      - ./dbt:/dbt
+      - ./dbt/profiles:/dbt/profiles
+      - ./dbt/project:/dbt/project
+    command: ["tail", "-f", "/dev/null"]
+
+volumes:
+  postgres_db:
+    external: true
